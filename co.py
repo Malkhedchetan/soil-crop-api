@@ -1,18 +1,20 @@
-import mysql.connector
-from mysql.connector import Error
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+import os, time
 
-def get_connection():
+DB_HOST = os.getenv("DB_HOST", "host.docker.internal")
+DB_USER = os.getenv("DB_USER", "root")
+DB_PASS = os.getenv("DB_PASSWORD", "cm6361")
+DB_NAME = os.getenv("DB_NAME", "soilrecommendation")
 
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
+
+while True:
     try:
-        conn = mysql.connector.connect(
-            host="localhost",       
-            user="root",  
-            password="Malkhed@123", 
-            database="soilrecommendation"  
-        )
-        if conn.is_connected():
-            print("✅ Successfully connected to the database")
-            return conn
-    except Error as e:
-        print(f"❌ Error connecting to database: {e}")
-        return None
+        engine = create_engine(DATABASE_URL)
+        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        print("✅ Connected to MySQL via SQLAlchemy")
+        break
+    except Exception as e:
+        print("⏳ Waiting for MySQL... Retrying", e)
+        time.sleep(2)
